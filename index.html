@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galileo Division Checklist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(8, minmax(80px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem;
+        }
+        .slot {
+            border: 2px solid #000;
+            padding: 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .slot-checked {
+            background-color: #10b981 !important; /* Tailwind green-500 */
+            color: white;
+            border-color: #047857;
+        }
+        .slot-special { background-color: #4b5563; color: white; } /* Dark grey for INSP/EMT */
+    </style>
+</head>
+<body class="bg-gray-100 font-sans" x-data="checklist()" x-init="init()">
+
+    <div class="max-w-6xl mx-auto py-10">
+        <header class="text-center mb-10">
+            <h1 class="text-3xl font-bold">Galileo Division (Green Drape)</h1>
+            <p class="text-gray-600 mt-2">Click a cell to mark as complete. State is saved automatically.</p>
+            <button @click="resetAll()" class="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition">Reset All</button>
+        </header>
+
+        <div class="flex flex-wrap justify-center gap-10">
+            
+            <div class="grid grid-cols-2 gap-x-0 border-t-2 border-transparent">
+                <template x-for="item in cells.filter(c => c.col <= 2)" :key="item.id">
+                    <div :class="{'slot': true, 'slot-checked': checked.includes(item.id), 'slot-special': item.special}"
+                         @click="toggle(item.id)">
+                        <div class="text-xs font-bold" x-text="item.label"></div>
+                        <div class="text-sm" x-text="item.val"></div>
+                    </div>
+                </template>
+            </div>
+
+            <div class="grid grid-cols-2 gap-x-0">
+                <template x-for="item in cells.filter(c => c.col > 2 && c.col <= 4)" :key="item.id">
+                    <div :class="{'slot': true, 'slot-checked': checked.includes(item.id), 'slot-special': item.special}"
+                         @click="toggle(item.id)">
+                        <div class="text-xs font-bold" x-text="item.label"></div>
+                        <div class="text-sm" x-text="item.val"></div>
+                    </div>
+                </template>
+            </div>
+
+            <div class="grid grid-cols-2 gap-x-0">
+                <template x-for="item in cells.filter(c => c.col > 4)" :key="item.id">
+                    <div :class="{'slot': true, 'slot-checked': checked.includes(item.id), 'slot-special': item.special}"
+                         @click="toggle(item.id)">
+                        <div class="text-xs font-bold" x-text="item.label"></div>
+                        <div class="text-sm" x-text="item.val"></div>
+                    </div>
+                </template>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function checklist() {
+            return {
+                checked: [],
+                // Partial Data Mapping based on your image
+                cells: [
+                    // Col 1 & 2 (E & F)
+                    { id: 1, col: 1, label: 'E25', val: '111' }, { id: 2, col: 2, label: 'E26', val: '2635' },
+                    { id: 3, col: 1, label: 'E23', val: '51' },  { id: 4, col: 2, label: 'E24', val: '1403' },
+                    { id: 5, col: 1, label: 'E17', val: '11244' }, { id: 6, col: 2, label: 'E18', val: '11214' },
+                    { id: 7, col: 1, label: 'E15', val: '5895' }, { id: 8, col: 2, label: 'E16', val: '7915' },
+                    { id: 9, col: 1, label: 'E03', val: 'INSP', special: true }, { id: 10, col: 2, label: 'E02', val: '7769' },
+                    
+                    // Col 3 & 4 (F & G)
+                    { id: 11, col: 3, label: 'F25', val: '2582' }, { id: 12, col: 4, label: 'F24', val: '10991' },
+                    { id: 13, col: 3, label: 'F23', val: '5577' }, { id: 14, col: 4, label: 'F18', val: '3931' },
+                    { id: 15, col: 3, label: 'F17', val: '6201' }, { id: 16, col: 4, label: 'G09', val: 'COL', special: true },
+
+                    // Col 5 & 6 (G & H)
+                    { id: 17, col: 5, label: 'G24', val: '5653' }, { id: 18, col: 6, label: 'H18', val: 'EMT', special: true },
+                    { id: 19, col: 5, label: 'G18', val: '1816' }, { id: 20, col: 6, label: 'H17', val: '7415' },
+                    { id: 21, col: 5, label: 'G02', val: '2491' }, { id: 22, col: 6, label: 'H01', val: '6487' },
+                ],
+                init() {
+                    const saved = localStorage.getItem('galileo_state');
+                    if (saved) this.checked = JSON.parse(saved);
+                },
+                toggle(id) {
+                    if (this.checked.includes(id)) {
+                        this.checked = this.checked.filter(i => i !== id);
+                    } else {
+                        this.checked.push(id);
+                    }
+                    localStorage.setItem('galileo_state', JSON.stringify(this.checked));
+                },
+                resetAll() {
+                    if(confirm("Clear all progress?")) {
+                        this.checked = [];
+                        localStorage.removeItem('galileo_state');
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
