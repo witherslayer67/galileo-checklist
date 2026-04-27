@@ -137,10 +137,14 @@
         function updateCounter() {
             let total = 0;
             data.flat(2).forEach(item => {
-                if (item !== 'gap' && item.id && item.id !== 'none') total++;
+                if (item !== 'gap' && 
+                item.id && 
+                item.id !== 'none' &&
+                item.type !== 'insp' &&
+                item.type !== 'dark') total++;
             });
             const checked = Object.values(savedState).filter(v => v === true).length;
-            const remaining = total - checked - 5; //5 for the pits that arent real like inspection, COL, EMT, etc
+            const remaining = total - checked; //5 for the pits that arent real like inspection, COL, EMT, etc
             
 
             const bar = document.getElementById('statusBar');
