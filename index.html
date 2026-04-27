@@ -81,10 +81,15 @@
         function checklist() {
             return {
                 checked: [],
-                // Partial Data Mapping based on your image
+                // Partial Data Mapping
                 cells: [
+                    //ID: ROW, COL: COLUMN
                     // Col 1 & 2 (E & F)
-                    { id: 1, col: 1, label: 'E25', val: '111' }, { id: 2, col: 2, label: 'E26', val: '2635' },
+                    { id: 1, col: 1, label: 'E25', val: '111' }, { id: 2, col: 2, label: 'WALKWAY', val: 'WALKWAY', special: true},
+                    { id: 3, col: 1, label: 'E23', val: '51' }, { id: 3, col: 2, label: 'WALKWAY', val: 'WALKWAY', special: true},
+                    { id: 5, col: 1, label: 'WALKWAY', val: 'WALKWAY', special: true}, { id: 5, col: 2, label: 'WALKWAY', val: 'WALKWAY', special: true},
+
+                    
                     { id: 3, col: 1, label: 'E23', val: '51' },  { id: 4, col: 2, label: 'E24', val: '1403' },
                     { id: 5, col: 1, label: 'E17', val: '11244' }, { id: 6, col: 2, label: 'E18', val: '11214' },
                     { id: 7, col: 1, label: 'E15', val: '5895' }, { id: 8, col: 2, label: 'E16', val: '7915' },
