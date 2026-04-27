@@ -4,127 +4,232 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Galileo Division Checklist</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
-        [x-cloak] { display: none !important; }
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(8, minmax(80px, 1fr));
-            gap: 1.5rem;
-            padding: 2rem;
+        :root {
+            --border-color: #333;
+            --checked-color: #a8e6cf;
+            --insp-color: #d3d3d3;
+            --col-emt-color: #666666;
+            --text-main: #000;
         }
-        .slot {
-            border: 2px solid #000;
-            padding: 4px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            min-height: 60px;
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #bf5700;
+            padding: 20px;
+            user-select: none;
+        }
+
+        h1 {
+            font-weight: normal;
+            margin-bottom: 30px;
+        }
+
+        .container {
+            display: flex;
+            gap: 40px; /* Spacing between the main columns */
+            align-items: flex-start;
+        }
+
+        .column-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0px;
+        }
+
+        .row-pair {
+            display: flex;
+            gap: 0; /* Cells touch in doubles */
+        }
+
+        .cell {
+            width: 60px;
+            height: 50px;
+            border: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 12px;
+            background: white;
+            transition: background 0.2s;
+            position: relative;
         }
-        .slot-checked {
-            background-color: #10b981 !important; /* Tailwind green-500 */
-            color: white;
-            border-color: #047857;
+
+        .cell .id { font-weight: normal; margin-bottom: 2px; }
+        .cell .val { font-weight: normal; }
+
+        /* Special States */
+        .cell.checked {
+            background-color: var(--checked-color) !important;
         }
-        .slot-special { background-color: #4b5563; color: white; } /* Dark grey for INSP/EMT */
+        .cell.checked::after {
+            content: "✓";
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            font-size: 10px;
+            color: #a2ff00;
+        }
+
+        .cell.insp { background-color: var(--insp-color); }
+        .cell.dark { background-color: var(--col-emt-color); color: white; }
+
+        .gap {
+            height: 30px; /* The horizontal gap in the middle */
+        }
+
+        .empty {
+            border: none;
+            cursor: default;
+        }
+
+        .container {
+            display: flex;
+            gap: 30px; /* Adjusted for better visual spacing */
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .cell.empty {
+            border: 1px solid transparent; /* Keeps the spacing but hides the box */
+            background: transparent;
+            cursor: default;
+        }
+
+        .gap {
+            height: 20px; /* Fixed height for the horizontal "aisle" */
+        }
+        
     </style>
 </head>
-<body class="bg-gray-100 font-sans" x-data="checklist()" x-init="init()">
+<body>
 
-    <div class="max-w-6xl mx-auto py-10">
-        <header class="text-center mb-10">
-            <h1 class="text-3xl font-bold">Galileo Division (Green Drape)</h1>
-            <p class="text-gray-600 mt-2">Click a cell to mark as complete. State is saved automatically.</p>
-            <button @click="resetAll()" class="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition">Reset All</button>
-        </header>
+    <h1>Galileo Division (Green Drape)</h1>
 
-        <div class="flex flex-wrap justify-center gap-10">
-            
-            <div class="grid grid-cols-2 gap-x-0 border-t-2 border-transparent">
-                <template x-for="item in cells.filter(c => c.col <= 2)" :key="item.id">
-                    <div :class="{'slot': true, 'slot-checked': checked.includes(item.id), 'slot-special': item.special}"
-                         @click="toggle(item.id)">
-                        <div class="text-xs font-bold" x-text="item.label"></div>
-                        <div class="text-sm" x-text="item.val"></div>
-                    </div>
-                </template>
-            </div>
-
-            <div class="grid grid-cols-2 gap-x-0">
-                <template x-for="item in cells.filter(c => c.col > 2 && c.col <= 4)" :key="item.id">
-                    <div :class="{'slot': true, 'slot-checked': checked.includes(item.id), 'slot-special': item.special}"
-                         @click="toggle(item.id)">
-                        <div class="text-xs font-bold" x-text="item.label"></div>
-                        <div class="text-sm" x-text="item.val"></div>
-                    </div>
-                </template>
-            </div>
-
-            <div class="grid grid-cols-2 gap-x-0">
-                <template x-for="item in cells.filter(c => c.col > 4)" :key="item.id">
-                    <div :class="{'slot': true, 'slot-checked': checked.includes(item.id), 'slot-special': item.special}"
-                         @click="toggle(item.id)">
-                        <div class="text-xs font-bold" x-text="item.label"></div>
-                        <div class="text-sm" x-text="item.val"></div>
-                    </div>
-                </template>
-            </div>
-
+    <div class="container" id="grid">
         </div>
-    </div>
 
     <script>
-        function checklist() {
-            return {
-                checked: [],
-                // Partial Data Mapping
-                cells: [
-                    //ID: ROW, COL: COLUMN
-                    // Col 1 & 2 (E & F)
-                    { id: 1, col: 1, label: 'E25', val: '111' }, { id: 2, col: 2, label: 'WALKWAY', val: 'WALKWAY', special: true},
-                    { id: 3, col: 1, label: 'E23', val: '51' }, { id: 3, col: 2, label: 'WALKWAY', val: 'WALKWAY', special: true},
-                    { id: 5, col: 1, label: 'WALKWAY', val: 'WALKWAY', special: true}, { id: 5, col: 2, label: 'WALKWAY', val: 'WALKWAY', special: true},
+        const data = [
+        // Group 1 (Left Single)
+        [
+            {id:'E25', v:'111'}, 
+            {id:'E23', v:'51'}, 
+            'gap',
+            {id:'E17', v:'11244'}, {id:'E15', v:'5895'}, {id:'E13', v:'4655'}, 
+            {id:'E11', v:'4766'}, {id:'E09', v:'1768'}, {id:'E07', v:'6528'}, 
+            {id:'E05', v:'4322'}, {id:'E03', v:'INSP', type:'insp'}, {id:'E03-2', v:'INSP', type:'insp'}
+        ],
+        // Group 2 (Double)
+        [
+            [{id:'E26', v:'2635'}, {id:'F25', v:'2582'}],
+            [{id:'E24', v:'1403'}, {id:'F23', v:'5577'}],
+            'gap',
+            [{id:'E18', v:'11214'}, {id:'F17', v:'6201'}],
+            [{id:'E16', v:'7915'}, {id:'F15', v:'11417'}],
+            [{id:'E14', v:'9496'}, {id:'F13', v:'5181'}],
+            [{id:'E12', v:'6429'}, {id:'F11', v:'10980'}],
+            [{id:'E10', v:'2231'}, {id:'F09', v:'2556'}],
+            [{id:'E08', v:'2054'}, {id:'F07', v:'7183'}],
+            [{id:'E06', v:'1506'}, {id:'F05', v:'1690'}],
+            [{id:'E04', v:'6665'}, {id:'F03', v:'1391'}],
+            [{id:'E02', v:'7769'}, {id:'F01', v:'5705'}]
+        ],
+        // Group 3 (Double)
+        [
+            [{id:'none', type:'empty'}, {id:'none', type:'empty'}], // Invisible spacer
+            [{id:'F24', v:'10991'}, {id:'G23', v:'10034'}],
+            'gap',
+            [{id:'F18', v:'3931'}, {id:'G17', v:'4020'}],
+            [{id:'F16', v:'8069'}, {id:'G15', v:'9572'}],
+            [{id:'F14', v:'614'}, {id:'G13', v:'3501'}],
+            [{id:'F12', v:'4469'}, {id:'G11', v:'2813'}],
+            [{id:'F10', v:'449'}, {id:'G09', v:'COL', type:'dark'}],
+            [{id:'F08', v:'16'}, {id:'G07', v:'3753'}],
+            [{id:'F06', v:'8159'}, {id:'G05', v:'2590'}],
+            [{id:'F04', v:'7840'}, {id:'G03', v:'484'}],
+            [{id:'F02', v:'1023'}, {id:'G01', v:'1756'}]
+        ],
+        // Group 4 (Double)
+        [
+            [{id:'none', type:'empty'}, {id:'none', type:'empty'}], // Invisible spacer
+            [{id:'G24', v:'5653'}, {id:'none', type:'empty'}],
+            'gap',
+            [{id:'G18', v:'1816'}, {id:'H17', v:'7415'}],
+            [{id:'G16', v:'2393'}, {id:'H15', v:'1533'}],
+            [{id:'G14', v:'3937'}, {id:'H13', v:'3082'}],
+            [{id:'G12', v:'4125'}, {id:'H11', v:'6985'}],
+            [{id:'G10', v:'4450'}, {id:'H09', v:'3544'}],
+            [{id:'G08', v:'3243'}, {id:'H07', v:'5913'}],
+            [{id:'G06', v:'8229'}, {id:'H05', v:'8858'}],
+            [{id:'G04', v:'11242'}, {id:'H03', v:'2468'}],
+            [{id:'G02', v:'2491'}, {id:'H01', v:'6487'}]
+        ],
+        // Group 5 (Right Single)
+        [
+            {id:'none', type:'empty'}, // Spacer
+            {id:'none', type:'empty'}, // Spacer
+            'gap',
+            {id:'H18', v:'EMT', type:'dark'},
+            {id:'H16', v:'EMT', type:'dark'},
+            {id:'H14', v:'6911'},
+            {id:'H12', v:'4607'},
+            {id:'H10', v:'931'},
+            {id:'H08', v:'8119'},
+            {id:'H06', v:'4087'},
+            {id:'H04', v:'364'}
+        ]
+    ];
 
-                    
-                    { id: 3, col: 1, label: 'E23', val: '51' },  { id: 4, col: 2, label: 'E24', val: '1403' },
-                    { id: 5, col: 1, label: 'E17', val: '11244' }, { id: 6, col: 2, label: 'E18', val: '11214' },
-                    { id: 7, col: 1, label: 'E15', val: '5895' }, { id: 8, col: 2, label: 'E16', val: '7915' },
-                    { id: 9, col: 1, label: 'E03', val: 'INSP', special: true }, { id: 10, col: 2, label: 'E02', val: '7769' },
-                    
-                    // Col 3 & 4 (F & G)
-                    { id: 11, col: 3, label: 'F25', val: '2582' }, { id: 12, col: 4, label: 'F24', val: '10991' },
-                    { id: 13, col: 3, label: 'F23', val: '5577' }, { id: 14, col: 4, label: 'F18', val: '3931' },
-                    { id: 15, col: 3, label: 'F17', val: '6201' }, { id: 16, col: 4, label: 'G09', val: 'COL', special: true },
+        const gridElement = document.getElementById('grid');
+        let savedState = JSON.parse(localStorage.getItem('galileoChecklist')) || {};
 
-                    // Col 5 & 6 (G & H)
-                    { id: 17, col: 5, label: 'G24', val: '5653' }, { id: 18, col: 6, label: 'H18', val: 'EMT', special: true },
-                    { id: 19, col: 5, label: 'G18', val: '1816' }, { id: 20, col: 6, label: 'H17', val: '7415' },
-                    { id: 21, col: 5, label: 'G02', val: '2491' }, { id: 22, col: 6, label: 'H01', val: '6487' },
-                ],
-                init() {
-                    const saved = localStorage.getItem('galileo_state');
-                    if (saved) this.checked = JSON.parse(saved);
-                },
-                toggle(id) {
-                    if (this.checked.includes(id)) {
-                        this.checked = this.checked.filter(i => i !== id);
-                    } else {
-                        this.checked.push(id);
-                    }
-                    localStorage.setItem('galileo_state', JSON.stringify(this.checked));
-                },
-                resetAll() {
-                    if(confirm("Clear all progress?")) {
-                        this.checked = [];
-                        localStorage.removeItem('galileo_state');
-                    }
-                }
+        function createCell(item) {
+            if (item.type === 'empty' || item.id === 'none') {
+                const div = document.createElement('div');
+                div.className = 'cell empty';
+                return div;
             }
+            const div = document.createElement('div');
+            div.className = `cell ${item.type || ''}`;
+            if (savedState[item.id]) div.classList.add('checked');
+            
+            div.innerHTML = `<span class="id">${item.id.replace('-2','')}</span><span class="val">${item.v}</span>`;
+            
+            div.onclick = () => {
+                div.classList.toggle('checked');
+                savedState[item.id] = div.classList.contains('checked');
+                localStorage.setItem('galileoChecklist', JSON.stringify(savedState));
+            };
+            return div;
         }
+
+        data.forEach(group => {
+            const colGroup = document.createElement('div');
+            colGroup.className = 'column-group';
+
+            group.forEach(row => {
+                if (row === 'gap') {
+                    const gap = document.createElement('div');
+                    gap.className = 'gap';
+                    colGroup.appendChild(gap);
+                } else if (Array.isArray(row)) {
+                    const rowPair = document.createElement('div');
+                    rowPair.className = 'row-pair';
+                    rowPair.appendChild(createCell(row[0]));
+                    rowPair.appendChild(createCell(row[1]));
+                    colGroup.appendChild(rowPair);
+                } else {
+                    colGroup.appendChild(createCell(row));
+                }
+            });
+            gridElement.appendChild(colGroup);
+        });
     </script>
 </body>
 </html>
