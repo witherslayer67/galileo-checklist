@@ -104,15 +104,54 @@
         .gap {
             height: 20px; /* Fixed height for the horizontal "aisle" */
         }
-        
+
+        /* 1. Add a wrapper to allow horizontal swiping on mobile */
+        .scroll-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
+            padding: 20px 0;
+            display: flex;
+            justify-content: center; /* Centers it on desktop */
+        }
+
+        /* 2. Adjust container to not clip the left side */
+        .container {
+            display: flex;
+            gap: 25px; 
+            align-items: flex-start;
+            padding: 10px;
+            min-width: max-content; /* Critical: prevents columns from squishing */
+        }
+
+        /* Mobile specific tweak */
+        @media (max-width: 800px) {
+            .scroll-wrapper {
+                justify-content: flex-start; /* Aligns to left so column 1 is visible */
+            }
+            h1 {
+                font-size: 1.2rem;
+                text-align: center;
+            }
+        }
+
+        .cell {
+            flex-shrink: 0; /* Prevents cells from getting skinny on small screens */
+            width: 60px;
+            height: 50px;
+            /* ... existing cell styles ... */
+        }
+
     </style>
 </head>
 <body>
 
     <h1>Galileo Division (Green Drape)</h1>
 
-    <div class="container" id="grid">
-        </div>
+    <div class="scroll-wrapper">
+        <div class="container" id="grid">
+            </div>
+    </div>
 
     <script>
         const data = [
