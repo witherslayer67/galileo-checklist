@@ -8,30 +8,46 @@
         :root {
             --border-color: #333;
             --checked-color: #a8e6cf;
-            --insp-color: #d3d3d3; /* #d3d3d3 */
+            --insp-color: #d3d3d3;
             --col-emt-color: #666666;
             --text-main: #000;
+            --bg-color: #bf5700; 
         }
 
         body {
             font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px 0 80px 0; /* Bottom padding for the status bar */
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #bf5700;
-            padding: 20px;
             user-select: none;
         }
 
         h1 {
             font-weight: normal;
             margin-bottom: 30px;
+            color: #000;
+        }
+
+        .scroll-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            display: flex;
+            justify-content: center;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (max-width: 800px) {
+            .scroll-wrapper { justify-content: flex-start; }
         }
 
         .container {
             display: flex;
-            gap: 40px; /* Spacing between the main columns */
-            align-items: flex-start;
+            gap: 30px;
+            padding: 20px;
+            min-width: max-content;
         }
 
         .column-group {
@@ -42,7 +58,7 @@
 
         .row-pair {
             display: flex;
-            gap: 0; /* Cells touch in doubles */
+            gap: 0;
         }
 
         .cell {
@@ -55,8 +71,7 @@
             align-items: center;
             cursor: pointer;
             font-size: 12px;
-            background: whitesmoke;
-            
+            background: white;
             transition: background 0.2s;
             position: relative;
         }
@@ -64,85 +79,35 @@
         .cell .id { font-weight: normal; margin-bottom: 2px; }
         .cell .val { font-weight: normal; }
 
-        /* Special States */
-        .cell.checked {
-            background-color: var(--checked-color) !important;
-        }
+        .cell.checked { background-color: var(--checked-color) !important; color: #1b5e20; }
         .cell.checked::after {
             content: "✓";
             position: absolute;
             top: 2px;
             right: 4px;
             font-size: 10px;
-            color: #a2ff00;
         }
 
         .cell.insp { background-color: var(--insp-color); }
         .cell.dark { background-color: var(--col-emt-color); color: white; }
+        .cell.empty { border: 1px solid transparent; background: transparent; cursor: default; }
 
-        .gap {
-            height: 30px; /* The horizontal gap in the middle */
-        }
+        .gap { height: 40px; }
 
-        .empty {
-            border: none;
-            cursor: default;
-        }
-
-        .container {
-            display: flex;
-            gap: 30px; /* Adjusted for better visual spacing */
-            align-items: flex-start;
-            justify-content: center;
-        }
-
-        .cell.empty {
-            border: 1px solid transparent; /* Keeps the spacing but hides the box */
-            background: transparent;
-            cursor: default;
-        }
-
-        .gap {
-            height: 20px; /* Fixed height for the horizontal "aisle" */
-        }
-
-        /* 1. Add a wrapper to allow horizontal swiping on mobile */
-        .scroll-wrapper {
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
             width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
-            padding: 20px 0;
-            display: flex;
-            justify-content: center; /* Centers it on desktop */
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+            z-index: 1000;
         }
-
-        /* 2. Adjust container to not clip the left side */
-        .container {
-            display: flex;
-            gap: 25px; 
-            align-items: flex-start;
-            padding: 10px;
-            min-width: max-content; /* Critical: prevents columns from squishing */
-        }
-
-        /* Mobile specific tweak */
-        @media (max-width: 800px) {
-            .scroll-wrapper {
-                justify-content: flex-start; /* Aligns to left so column 1 is visible */
-            }
-            h1 {
-                font-size: 1.2rem;
-                text-align: center;
-            }
-        }
-
-        .cell {
-            flex-shrink: 0; /* Prevents cells from getting skinny on small screens */
-            width: 60px;
-            height: 50px;
-            
-        }
-
     </style>
 </head>
 <body>
@@ -150,92 +115,49 @@
     <h1>Galileo Division (Green Drape)</h1>
 
     <div class="scroll-wrapper">
-        <div class="container" id="grid">
-            </div>
+        <div class="container" id="grid"></div>
+    </div>
+
+    <div class="status-bar" id="statusBar">
+        Pits Remaining: <span id="remainingCount">0</span>
     </div>
 
     <script>
-        const data = [
-        // Group 1 (Left Single)
-        [
-            {id:'E25', v:'111'}, 
-            {id:'E23', v:'51'}, 
-            'gap',
-            {id:'E17', v:'11244'}, {id:'E15', v:'5895'}, {id:'E13', v:'4655'}, 
-            {id:'E11', v:'4766'}, {id:'E09', v:'1768'}, {id:'E07', v:'6528'}, 
-            {id:'E05', v:'4322'}, {id:'E03', v:'INSP', type:'insp'}, {id:'E03-2', v:'INSP', type:'insp'}
-        ],
-        // Group 2 (Double)
-        [
-            [{id:'E26', v:'2635'}, {id:'F25', v:'2582'}],
-            [{id:'E24', v:'1403'}, {id:'F23', v:'5577'}],
-            'gap',
-            [{id:'E18', v:'11214'}, {id:'F17', v:'6201'}],
-            [{id:'E16', v:'7915'}, {id:'F15', v:'11417'}],
-            [{id:'E14', v:'9496'}, {id:'F13', v:'5181'}],
-            [{id:'E12', v:'6429'}, {id:'F11', v:'10980'}],
-            [{id:'E10', v:'2231'}, {id:'F09', v:'2556'}],
-            [{id:'E08', v:'2054'}, {id:'F07', v:'7183'}],
-            [{id:'E06', v:'1506'}, {id:'F05', v:'1690'}],
-            [{id:'E04', v:'6665'}, {id:'F03', v:'1391'}],
-            [{id:'E02', v:'7769'}, {id:'F01', v:'5705'}]
-        ],
-        // Group 3 (Double)
-        [
-            [{id:'none', type:'empty'}, {id:'none', type:'empty'}], // Invisible spacer
-            [{id:'F24', v:'10991'}, {id:'G23', v:'10034'}],
-            'gap',
-            [{id:'F18', v:'3931'}, {id:'G17', v:'4020'}],
-            [{id:'F16', v:'8069'}, {id:'G15', v:'9572'}],
-            [{id:'F14', v:'614'}, {id:'G13', v:'3501'}],
-            [{id:'F12', v:'4469'}, {id:'G11', v:'2813'}],
-            [{id:'F10', v:'449'}, {id:'G09', v:'COL', type:'dark'}],
-            [{id:'F08', v:'16'}, {id:'G07', v:'3753'}],
-            [{id:'F06', v:'8159'}, {id:'G05', v:'2590'}],
-            [{id:'F04', v:'7840'}, {id:'G03', v:'484'}],
-            [{id:'F02', v:'1023'}, {id:'G01', v:'1756'}]
-        ],
-        // Group 4 (Double)
-        [
-            [{id:'none', type:'empty'}, {id:'none', type:'empty'}], // Invisible spacer
-            [{id:'G24', v:'5653'}, {id:'none', type:'empty'}],
-            'gap',
-            [{id:'G18', v:'1816'}, {id:'H17', v:'7415'}],
-            [{id:'G16', v:'2393'}, {id:'H15', v:'1533'}],
-            [{id:'G14', v:'3937'}, {id:'H13', v:'3082'}],
-            [{id:'G12', v:'4125'}, {id:'H11', v:'6985'}],
-            [{id:'G10', v:'4450'}, {id:'H09', v:'3544'}],
-            [{id:'G08', v:'3243'}, {id:'H07', v:'5913'}],
-            [{id:'G06', v:'8229'}, {id:'H05', v:'8858'}],
-            [{id:'G04', v:'11242'}, {id:'H03', v:'2468'}],
-            [{id:'G02', v:'2491'}, {id:'H01', v:'6487'}]
-        ],
-        // Group 5 (Right Single)
-        [
-            {id:'none', type:'empty'}, // Spacer
-            {id:'none', type:'empty'}, // Spacer
-            'gap',
-            {id:'H18', v:'EMT', type:'dark'},
-            {id:'H16', v:'EMT', type:'dark'},
-            {id:'H14', v:'6911'},
-            {id:'H12', v:'4607'},
-            {id:'H10', v:'931'},
-            {id:'H08', v:'8119'},
-            {id:'H06', v:'4087'},
-            {id:'H04', v:'364'}
-        ]
-    ];
+        const data = [ //this will be hell if i have to go back through here
+            [{id:'E25', v:'111'}, {id:'E23', v:'51'}, 'gap', {id:'E17', v:'11244'}, {id:'E15', v:'5895'}, {id:'E13', v:'4655'}, {id:'E11', v:'4766'}, {id:'E09', v:'1768'}, {id:'E07', v:'6528'}, {id:'E05', v:'4322'}, {id:'E03', v:'INSP', type:'insp'}, {id:'E03-2', v:'INSP', type:'insp'}],
+            [[{id:'E26', v:'2635'}, {id:'F25', v:'2582'}], [{id:'E24', v:'1403'}, {id:'F23', v:'5577'}], 'gap', [{id:'E18', v:'11214'}, {id:'F17', v:'6201'}], [{id:'E16', v:'7915'}, {id:'F15', v:'11417'}], [{id:'E14', v:'9496'}, {id:'F13', v:'5181'}], [{id:'E12', v:'6429'}, {id:'F11', v:'10980'}], [{id:'E10', v:'2231'}, {id:'F09', v:'2556'}], [{id:'E08', v:'2054'}, {id:'F07', v:'7183'}], [{id:'E06', v:'1506'}, {id:'F05', v:'1690'}], [{id:'E04', v:'6665'}, {id:'F03', v:'1391'}], [{id:'E02', v:'7769'}, {id:'F01', v:'5705'}]],
+            [[{id:'none', type:'empty'}, {id:'none', type:'empty'}], [{id:'F24', v:'10991'}, {id:'G23', v:'10034'}], 'gap', [{id:'F18', v:'3931'}, {id:'G17', v:'4020'}], [{id:'F16', v:'8069'}, {id:'G15', v:'9572'}], [{id:'F14', v:'614'}, {id:'G13', v:'3501'}], [{id:'F12', v:'4469'}, {id:'G11', v:'2813'}], [{id:'F10', v:'449'}, {id:'G09', v:'COL', type:'dark'}], [{id:'F08', v:'16'}, {id:'G07', v:'3753'}], [{id:'F06', v:'8159'}, {id:'G05', v:'2590'}], [{id:'F04', v:'7840'}, {id:'G03', v:'484'}], [{id:'F02', v:'1023'}, {id:'G01', v:'1756'}]],
+            [[{id:'none', type:'empty'}, {id:'none', type:'empty'}], [{id:'G24', v:'5653'}, {id:'none', type:'empty'}], 'gap', [{id:'G18', v:'1816'}, {id:'H17', v:'7415'}], [{id:'G16', v:'2393'}, {id:'H15', v:'1533'}], [{id:'G14', v:'3937'}, {id:'H13', v:'3082'}], [{id:'G12', v:'4125'}, {id:'H11', v:'6985'}], [{id:'G10', v:'4450'}, {id:'H09', v:'3544'}], [{id:'G08', v:'3243'}, {id:'H07', v:'5913'}], [{id:'G06', v:'8229'}, {id:'H05', v:'8858'}], [{id:'G04', v:'11242'}, {id:'H03', v:'2468'}], [{id:'G02', v:'2491'}, {id:'H01', v:'6487'}]],
+            ['gap', 'gap', 'gap', {id:'H18', v:'EMT', type:'dark'}, {id:'H16', v:'EMT', type:'dark'}, {id:'H14', v:'6911'}, {id:'H12', v:'4607'}, {id:'H10', v:'931'}, {id:'H08', v:'8119'}, {id:'H06', v:'4087'}, {id:'H04', v:'364'}]
+        ];
 
         const gridElement = document.getElementById('grid');
         let savedState = JSON.parse(localStorage.getItem('galileoChecklist')) || {};
 
+        function updateCounter() {
+            let total = 0;
+            data.flat(2).forEach(item => {
+                if (item !== 'gap' && item.id && item.id !== 'none') total++;
+            });
+            const checked = Object.values(savedState).filter(v => v === true).length;
+            const remaining = total - checked - 5; //5 for the pits that arent real like inspection, COL, EMT, etc
+            
+            const bar = document.getElementById('statusBar');
+            if (remaining === 0 && total > 0) {
+                bar.style.background = "#1b5e20";
+                bar.innerHTML = "All Clear!";
+            } else {
+                bar.style.background = "#333";
+                bar.innerHTML = `Pits Remaining: <span style="color:#a8e6cf">${remaining}</span>`;
+            }
+        }
+
         function createCell(item) {
+            const div = document.createElement('div');
             if (item.type === 'empty' || item.id === 'none') {
-                const div = document.createElement('div');
                 div.className = 'cell empty';
                 return div;
             }
-            const div = document.createElement('div');
             div.className = `cell ${item.type || ''}`;
             if (savedState[item.id]) div.classList.add('checked');
             
@@ -245,31 +167,34 @@
                 div.classList.toggle('checked');
                 savedState[item.id] = div.classList.contains('checked');
                 localStorage.setItem('galileoChecklist', JSON.stringify(savedState));
+                updateCounter();
             };
             return div;
         }
 
+        // Render Grid
         data.forEach(group => {
-            const colGroup = document.createElement('div');
-            colGroup.className = 'column-group';
-
+            const col = document.createElement('div');
+            col.className = 'column-group';
             group.forEach(row => {
                 if (row === 'gap') {
-                    const gap = document.createElement('div');
-                    gap.className = 'gap';
-                    colGroup.appendChild(gap);
+                    const g = document.createElement('div');
+                    g.className = 'gap';
+                    col.appendChild(g);
                 } else if (Array.isArray(row)) {
-                    const rowPair = document.createElement('div');
-                    rowPair.className = 'row-pair';
-                    rowPair.appendChild(createCell(row[0]));
-                    rowPair.appendChild(createCell(row[1]));
-                    colGroup.appendChild(rowPair);
+                    const pair = document.createElement('div');
+                    pair.className = 'row-pair';
+                    pair.appendChild(createCell(row[0]));
+                    pair.appendChild(createCell(row[1]));
+                    col.appendChild(pair);
                 } else {
-                    colGroup.appendChild(createCell(row));
+                    col.appendChild(createCell(row));
                 }
             });
-            gridElement.appendChild(colGroup);
+            gridElement.appendChild(col);
         });
+
+        updateCounter();
     </script>
 </body>
 </html>
