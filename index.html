@@ -142,8 +142,9 @@
             const checked = Object.values(savedState).filter(v => v === true).length;
             const remaining = total - checked - 5; //5 for the pits that arent real like inspection, COL, EMT, etc
             
+
             const bar = document.getElementById('statusBar');
-            if (remaining === 0 && total > 0) {
+            if (remaining === 0 && total > 0 || remaining < 0) {
                 bar.style.background = "#1b5e20";
                 bar.innerHTML = "All Clear!";
             } else {
