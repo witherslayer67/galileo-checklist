@@ -165,6 +165,8 @@
             div.innerHTML = `<span class="id">${item.id.replace('-2','')}</span><span class="val">${item.v}</span>`;
             
             div.onclick = () => {
+                if (item.type === 'insp' || item.type === 'dark') return;
+
                 div.classList.toggle('checked');
                 savedState[item.id] = div.classList.contains('checked');
                 localStorage.setItem('galileoChecklist', JSON.stringify(savedState));
