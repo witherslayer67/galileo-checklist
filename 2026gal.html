@@ -123,6 +123,9 @@
     </div>
 
     <script>
+
+        const eventCode = '2026gal' //TODO: Change per event
+
         const data = [ //this will be hell if i have to go back through here
             [{id:'E25', v:'111'}, {id:'E23', v:'51'}, 'gap', {id:'E17', v:'11244'}, {id:'E15', v:'5895'}, {id:'E13', v:'4655'}, {id:'E11', v:'4766'}, {id:'E09', v:'1768'}, {id:'E07', v:'6528'}, {id:'E05', v:'4322'}, {id:'E03', v:'INSP', type:'insp'}, {id:'E03-2', v:'INSP', type:'insp'}],
             [[{id:'E26', v:'2635'}, {id:'F25', v:'2582'}], [{id:'E24', v:'1403'}, {id:'F23', v:'5577'}], 'gap', [{id:'E18', v:'11214'}, {id:'F17', v:'6201'}], [{id:'E16', v:'7915'}, {id:'F15', v:'11417'}], [{id:'E14', v:'9496'}, {id:'F13', v:'5181'}], [{id:'E12', v:'6429'}, {id:'F11', v:'10980'}], [{id:'E10', v:'2231'}, {id:'F09', v:'2556'}], [{id:'E08', v:'2054'}, {id:'F07', v:'7183'}], [{id:'E06', v:'1506'}, {id:'F05', v:'1690'}], [{id:'E04', v:'6665'}, {id:'F03', v:'1391'}], [{id:'E02', v:'7769'}, {id:'F01', v:'5705'}]],
@@ -132,7 +135,7 @@
         ];
 
         const gridElement = document.getElementById('grid');
-        let savedState = JSON.parse(localStorage.getItem('galileoChecklist')) || {};
+        let savedState = JSON.parse(localStorage.getItem(eventCode)) || {};
 
         function updateCounter() {
             let checkableIds = [];
@@ -181,7 +184,7 @@
 
                 div.classList.toggle('checked');
                 savedState[item.id] = div.classList.contains('checked');
-                localStorage.setItem('galileoChecklist', JSON.stringify(savedState));
+                localStorage.setItem(eventCode, JSON.stringify(savedState));
                 updateCounter();
             };
             return div;

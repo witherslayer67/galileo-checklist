@@ -123,6 +123,8 @@
     </div>
 
     <script>
+        const eventCode = '2026nccmp'
+
         const data = [ //this will be hell if i have to go back through here
             // 26GAL
             // [ //example of a single column
@@ -304,7 +306,7 @@
         ];
 
         const gridElement = document.getElementById('grid');
-        let savedState = JSON.parse(localStorage.getItem('galileoChecklist')) || {};
+        let savedState = JSON.parse(localStorage.getItem(eventCode)) || {};
 
         function updateCounter() {
             let checkableIds = [];
@@ -353,7 +355,7 @@
 
                 div.classList.toggle('checked');
                 savedState[item.id] = div.classList.contains('checked');
-                localStorage.setItem('galileoChecklist', JSON.stringify(savedState));
+                localStorage.setItem(eventCode, JSON.stringify(savedState));
                 updateCounter();
             };
             return div;
